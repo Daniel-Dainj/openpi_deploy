@@ -1,0 +1,38 @@
+[project]
+name = "openpi-deploy"
+version = "0.1.0"
+description = "Deployment package for OpenPI"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "moviepy",
+    "msgpack",
+    "numpy<2",
+    "pillow",
+    "robosuite",
+    "websockets",
+]
+
+[project.urls]
+Homepage = "https://github.com/Daniel-Dainj/openpi_deploy"
+
+[tool.uv]
+cache-dir = "D:/Programs/Python/uv/cache"
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://mirrors.nju.edu.cn/pytorch/whl/cu128"
+explicit = true
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu128", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+torchvision = [
+  { index = "pytorch-cu128", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+torchaudio = [
+  { index = "pytorch-cu128", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
