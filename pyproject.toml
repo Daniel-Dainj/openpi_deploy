@@ -16,8 +16,6 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/Daniel-Dainj/openpi_deploy"
 
-[tool.uv]
-cache-dir = "D:/Programs/Python/uv/cache"
 [[tool.uv.index]]
 name = "pypi"
 url = "https://pypi.tuna.tsinghua.edu.cn/simple"
