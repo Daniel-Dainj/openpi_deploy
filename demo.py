@@ -7,30 +7,34 @@ from utils.websocket_client_policy import WebsocketClientPolicy
 from utils.misc import _quat2axisangle, convert_numpy_to_video
 
 import numpy as np
+
 np.random.seed(42)
 
 DUMMY_ACTION = [0.0] * 6 + [-1.0]
 ENV_RESOLUTION = 256  # resolution used to render training data
 
+
 @dataclass
 class Args:
-    host: str = "localhost"      # 你的服务器地址
-    port: int = 8000             # 你的服务器端口
-    
-    resize_size: int = 224       
-    
+    host: str = "172.23.207.82"  # 你的服务器地址
+    port: int = 8000  # 你的服务器端口
+
+    resize_size: int = 224
+
     replan_steps: int = 5
-    max_steps: int = 100        
+    max_steps: int = 100
     num_steps_wait: int = 10
-    
+
     video_out_path: str = "./output/videos"  # Path to save videos
+
 
 def get_env():
     # create environment instance
     import robosuite as suite
+
     env = suite.make(
         env_name="Lift",  # try with other tasks like "Stack" and "Door"
-        robots="Panda",   # try with other robots like "Sawyer" and "Jaco" UR5e
+        robots="Panda",  # try with other robots like "Sawyer" and "Jaco" UR5e
         has_renderer=True,
         has_offscreen_renderer=True,
         use_camera_obs=True,
@@ -39,7 +43,7 @@ def get_env():
     )
     # Reset environment MUST
     env.reset()
-    
+
     # 获取不同视野的相机ID
     # {'frontview': 0, 'birdview': 1, 'agentview': 2, 'sideview': 3, 'robot0_robotview': 4, 'robot0_eye_in_hand': 5}
     camera_id = env.sim.model.camera_name2id("agentview")
@@ -67,7 +71,7 @@ def eval_my_env(args: Args):
     # and we need to wait for them to fall
     for _ in range(args.num_steps_wait):
         obs, reward, done, info = env.step(DUMMY_ACTION)
-        
+
     replay_images = []
     action_deque = deque()
     for _ in range(args.max_steps):
@@ -81,7 +85,7 @@ def eval_my_env(args: Args):
 
             if len(action_deque) == 0:  #
                 # Finished executing previous action chunk -- compute new chunk
-                element = { # Prepare observations dict
+                element = {  # Prepare observations dict
                     "observation/image": img,
                     "observation/wrist_image": wrist_img,
                     "observation/state": np.concatenate(
@@ -99,23 +103,21 @@ def eval_my_env(args: Args):
                 assert (
                     len(action_chunk) >= args.replan_steps
                 ), f"We want to replan every {args.replan_steps} steps, but policy only predicts {len(action_chunk)} steps."
-                
+
                 action_deque.extend(action_chunk[: args.replan_steps])
 
             # Execute action in environment
             action = action_deque.popleft()
             obs, reward, done, info = env.step(action.tolist())
-            
+
             print("action: ", action)
             # Save preprocessed image for replay video
             replay_images.append(img)
 
-
         except Exception as e:
             print(f"[error]: Caught exception: {e}")
             break
-    
-    
+
     os.makedirs(args.video_out_path, exist_ok=True)
     convert_numpy_to_video(replay_images, args.video_out_path + f"/task.mp4")
 
